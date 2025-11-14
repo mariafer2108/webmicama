@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pagar — Mi Cama Hogar</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="brandbar"><div class="container brand-wrap"><img class="logo-img" src="img/logo.jpg" alt="Mi Cama Hogar" /></div></div>
+    <div class="topbar"><div class="container nav-wrap"><nav class="nav">
+      <a href="index.html">Inicio</a>
+      <a href="productos.html">Productos</a>
+      <a href="carrito.html"><i class="fa-solid fa-cart-shopping"></i> Carrito</a>
+    </nav></div></div>
+  </header>
+
+  <main class="container">
+    <h1 class="page-title">Finalizar compra</h1>
+    <div class="checkout-grid">
+      <section class="order-summary">
+        <h2>Resumen</h2>
+        <table class="cart-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div class="totals-box" style="margin-top:10px;">
+          <div>Subtotal: <strong id="subtotal"></strong></div>
+          <div style="margin-top:6px;">
+            Tipo de entrega:
+            <select id="shipping" style="margin-left:8px;">
+              <option value="retiro">Retiro en tienda (sin costo)</option>
+              <option value="despacho">Despacho a domicilio</option>
+            </select>
+          </div>
+          <div style="margin-top:6px;">Costo despacho: <strong id="shipping-cost"></strong></div>
+          <div style="margin-top:6px;">Total a pagar: <strong id="grand-total"></strong></div>
+        </div>
+      </section>
+
+      <section class="checkout-form">
+        <h2>Tus datos</h2>
+        <form id="checkout-form">
+          <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+            <input type="text" id="name" placeholder="Nombre completo" required />
+            <input type="email" id="email" placeholder="Correo (opcional)" />
+            <input type="tel" id="phone" placeholder="Teléfono (+56...)" required />
+            <input type="text" id="address" placeholder="Dirección" />
+            <input type="text" id="city" placeholder="Comuna / Ciudad" />
+            <textarea id="notes" placeholder="Comentarios (color, horario, referencias...)" rows="3"></textarea>
+          </div>
+
+          <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+            <!-- Dentro del formulario en la sección .checkout-form -->
+            <button type="button" class="btn btn-primary" id="pay-card" data-payment-link="">Pagar con tarjeta</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="contact"><h4>Contáctanos</h4><p><i class="fa-brands fa-whatsapp"></i> +56959288588</p><p>Vicente Reyes 773</p></div>
+      <div class="social"><h4>Social</h4><div class="icons">
+        <a href="https://www.facebook.com/profile.php?id=100023850053500" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-facebook-square"></i></a>
+        <a href="https://www.instagram.com/micama_villarrica/" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-instagram"></i></a>
+      </div></div>
+      <div class="copy"><p>Copyright © 2025 Diseñado por Maria Fernanda Freelancer</p></div>
+    </div>
+  </footer>
+
+  <script src="cart.js"></script>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tbody = document.querySelector('.order-summary tbody');
+    const subtotalEl = document.getElementById('subtotal');
+    const shippingSel = document.getElementById('shipping');
+    const shippingCostEl = document.getElementById('shipping-cost');
+    const grandEl = document.getElementById('grand-total');
+    const payCardBtn = document.getElementById('pay-card');
+    const payWhatsBtn = document.getElementById('pay-whatsapp');
+
+    const cart = Cart.getCart();
+    if (!cart.length) {
+      tbody.innerHTML = '<tr><td colspan="4">Tu carrito está vacío.</td></tr>';
+    } else {
+      tbody.innerHTML = cart.map(it => {
+        const total = it.price * it.qty;
+        const href = `producto.html?key=${encodeURIComponent(it.key)}&name=${encodeURIComponent(it.name)}&measure=${encodeURIComponent(it.measure || '')}`;
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <a href="${href}" aria-label="Ver ${it.name}">
+                  <img src="${it.image}" alt="${it.name}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;">
+                </a>
+                <div>
+                  <div><strong>${it.name}</strong></div>
+                  <div style="font-size:0.85rem;color:#666;">${it.category}${it.measure ? ' • ' + it.measure : ''}</div>
+                </div>
+              </div>
+            </td>
+            <td>${it.qty}</td>
+            <td>${Cart.formatCLP(it.price)}</td>
+            <td>${Cart.formatCLP(total)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function updateTotals() {
+      const { subtotal } = Cart.totals(cart);
+      subtotalEl.textContent = Cart.formatCLP(subtotal);
+
+      const shippingType = shippingSel.value;
+      const cost = shippingType === 'despacho' ? 3500 : 0; // ajusta costo de despacho
+      shippingCostEl.textContent = Cart.formatCLP(cost);
+      grandEl.textContent = Cart.formatCLP(subtotal + cost);
+      return { subtotal, cost, grand: subtotal + cost, shippingType };
+    }
+    updateTotals();
+    shippingSel.addEventListener('change', updateTotals);
+
+    function collectCustomer() {
+      return {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        address: document.getElementById('address').value.trim(),
+        city: document.getElementById('city').value.trim(),
+        notes: document.getElementById('notes').value.trim(),
+      };
+    }
+    function validate(customer) {
+      if (!customer.name) { alert('Ingresa tu nombre.'); return false; }
+      if (!customer.phone) { alert('Ingresa tu teléfono.'); return false; }
+      return true;
+    }
+
+    // Pago con tarjeta: redirige a tu enlace de pago
+    payCardBtn.addEventListener('click', () => {
+      const customer = collectCustomer();
+      if (!validate(customer)) return;
+      const totals = updateTotals();
+      const order = { items: cart, customer, totals };
+      localStorage.setItem('last.order', JSON.stringify(order));
+
+      const paymentLink = payCardBtn.dataset.paymentLink || '';
+      if (!paymentLink) {
+        alert('Configura tu enlace de pago en el botón (data-payment-link).');
+        return;
+      }
+      location.href = paymentLink;
+    });
+
+    // WhatsApp: envía el pedido a tu número
+    payWhatsBtn.addEventListener('click', () => {
+      const customer = collectCustomer();
+      if (!validate(customer)) return;
+      const totals = updateTotals();
+
+      const itemsText = cart.map(it => `• ${it.name} (${it.measure || 'sin medida'}) x${it.qty} — ${Cart.formatCLP(it.price * it.qty)}`).join('%0A');
+      const msg = `Hola, quiero comprar:%0A${itemsText}%0A%0ASubtotal: ${Cart.formatCLP(totals.subtotal)}%0ADespacho: ${Cart.formatCLP(totals.cost)}%0ATotal: ${Cart.formatCLP(totals.grand)}%0A%0ADatos:%0ANombre: ${encodeURIComponent(customer.name)}%0ATeléfono: ${encodeURIComponent(customer.phone)}%0ACorreo: ${encodeURIComponent(customer.email || '-') }%0ADirección: ${encodeURIComponent(customer.address || '-') }%0AComuna/Ciudad: ${encodeURIComponent(customer.city || '-') }%0AComentarios: ${encodeURIComponent(customer.notes || '-') }`;
+      const whatsapp = 'https://wa.me/56959288588?text=' + msg; // cambia el número si deseas
+      window.open(whatsapp, '_blank');
+    });
+  });
+</script>
+</body>
+</html>

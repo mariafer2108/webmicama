@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Productos — Mi Cama Hogar</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="brandbar">
+            <div class="container brand-wrap">
+                <img class="logo-img" src="img/logo.jpg" alt="Mi Cama Hogar" />
+            </div>
+        </div>
+        <div class="topbar"><div class="container nav-wrap"><nav class="nav">
+            <a href="index.html">Inicio</a>
+            <a href="productos.html">Productos</a>
+            <a href="carrito.html"><i class="fa-solid fa-cart-shopping"></i> Carrito</a>
+        </nav></div></div>
+    </header>
+
+    <main class="container">
+        <section class="products-head">
+            <h1 class="page-title">Categorías</h1>
+            <div class="searchbar">
+                <input type="text" placeholder="Buscar productos..." aria-label="Buscar productos" />
+                <button class="search-btn" aria-label="Buscar">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Dentro de la sección de categorías -->
+        <section class="categories categories--strip">
+            <div class="categories-grid">
+                <a class="category" href="almohadas.html">
+                    <img src="img/almohadas.JPG" alt="Almohadas" />
+                    <span class="label-strip">Almohadas</span>
+                </a>
+                <a class="category" href="sabanas.html">
+                    <img src="img/sabana.JPG" alt="Sábanas" />
+                    <span class="label-strip">Sábanas</span>
+                </a>
+                <a class="category" href="toallas.html">
+                    <img src="img/toallas.JPG" alt="Toallas" />
+                    <span class="label-strip">Toallas</span>
+                </a>
+                <!-- NUEVO: Protectores -->
+                <a class="category" href="protectores.html">
+                    <img src="img/protector.JPG" alt="Protectores" />
+                    <span class="label-strip">Protectores</span>
+                </a>
+                <!-- Fin nuevo -->
+                <a class="category" href="quilt.html">
+                    <img src="img/quilt.JPG" alt="Quilt" />
+                    <span class="label-strip">Quilt</span>
+                </a>
+                <a class="category" href="plumones.html">
+                    <img src="img/cobertor.JPG" alt="Plumones" />
+                    <span class="label-strip">Plumones</span>
+                </a>
+                <!-- NUEVO: Frazadas -->
+                <a class="category" href="frazadas.html">
+                    <img src="img/frazada.JPG" alt="Frazadas" />
+                    <span class="label-strip">Frazadas</span>
+                </a>
+                <!-- Fin nuevo -->
+                <a class="category" href="infantil.html">
+                    <img src="img/infantil.JPG" alt="Infantil" />
+                    <span class="label-strip">Infantil</span>
+                </a>
+            </div>
+        </section>
+
+        <hr class="section-divider" />
+
+        <section class="measures">
+            <h2 class="page-title">Medidas</h2>
+
+            <div class="measure-list">
+                <a class="measure-card" href="medida-1-plaza.html">
+                    <img src="img/inicio.jpg" alt="1 Plaza" />
+                    <span>1 Plaza</span>
+                </a>
+                <a class="measure-card" href="medida-1-5-plaza.html">
+                    <img src="img/inicio.jpg" alt="1 1/2 Plaza" />
+                    <span>1 1/2 Plaza</span>
+                </a>
+                <a class="measure-card" href="medida-2-plazas.html">
+                    <img src="img/inicio.jpg" alt="2 Plazas" />
+                    <span>2 Plazas</span>
+                </a>
+                <a class="measure-card" href="medida-king.html">
+                    <img src="img/inicio.jpg" alt="King" />
+                    <span>King</span>
+                </a>
+                <a class="measure-card" href="medida-super-king.html">
+                    <img src="img/inicio.jpg" alt="Super King" />
+                    <span>Super King</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-grid">
+            <div class="contact">
+                <h4>Contáctanos</h4>
+                <p><i class="fa-brands fa-whatsapp"></i> +56959288588</p>
+                <p>Vicente Reyes 773</p>
+            </div>
+            <div class="social">
+                <h4>Social</h4>
+                <div class="icons">
+                    <a href="https://www.facebook.com/profile.php?id=100023850053500" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-brands fa-facebook-square"></i>
+                    </a>
+                    <a href="https://www.instagram.com/micama_villarrica/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="copy">
+                <p>Copyright © 2025 Diseñado por Maria Fernanda Freelancer</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="cart.js"></script>
+<script src="inventory.js"></script>
+</body>
+</html>

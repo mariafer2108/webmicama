@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Detalle de producto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- SDK de Supabase para poder consultar inventario directamente -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header>
+    <div class="brandbar">
+      <div class="container brand-wrap">
+        <img class="logo-img" src="img/logo.jpg" alt="Mi Cama Hogar" />
+      </div>
+    </div>
+    <div class="topbar">
+      <div class="container nav-wrap">
+        <nav class="nav">
+          <a href="index.html">Inicio</a>
+          <a href="productos.html">Productos</a>
+          <a href="carrito.html"><i class="fa-solid fa-cart-shopping"></i> Carrito</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+  <main class="container">
+    <section id="product-detail"></section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="contact">
+        <h4>Contáctanos</h4>
+        <p><i class="fa-brands fa-whatsapp"></i> +56959288588</p>
+        <p>Vicente Reyes 773</p>
+      </div>
+      <div class="social">
+        <h4>Social</h4>
+        <div class="icons">
+          <a href="https://www.facebook.com/profile.php?id=100023850053500" aria-label="Facebook" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-facebook-square"></i>
+          </a>
+          <a href="https://www.instagram.com/micama_villarrica/" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-instagram"></i>
+          </a>
+        </div>
+      </div>
+      <div class="copy">
+        <p>Copyright © 2025 Diseñado por Maria Fernanda Freelancer</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Activar manejo de carrito y utilidades compartidas -->
+  <script src="cart.js"></script>
+  <script src="inventory.js"></script>
+
+  <script>
+    (async function () {
+      const qs = new URLSearchParams(location.search);
+      const id = qs.get('id');
+      const key = qs.get('key');
+      const nameQ = qs.get('name');
+      const measureQ = qs.get('measure');
+
+      const esc = (s) => String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const detailEl = document.getElementById('product-detail');
+      detailEl.innerHTML = '<article class="product-card"><h3>Cargando...</h3></article>';
+  
+      // Lectura de cache local
+      const readCache = () => {
+        try {
+          const raw = localStorage.getItem('inventory.cache');
+          if (!raw) return { savedAt: 0, items: [] };
+          const obj = JSON.parse(raw);
+          if (Array.isArray(obj)) return { savedAt: 0, items: obj };
+          return { savedAt: Number(obj?.savedAt) || 0, items: Array.isArray(obj?.items) ? obj.items : [] };
+        } catch { return { savedAt: 0, items: [] }; }
+      };
+
+      async function fetchAllItems() {
+        // 1) Intentar Supabase directo (requiere que inventory.js esté cargado)
+        if (typeof fetchInventory === 'function') {
+          try {
+            const res = await fetchInventory(null);
+            if (Array.isArray(res) && res.length) {
+              return res.map(typeof normalizeItem === 'function' ? normalizeItem : (x) => x);
+            }
+          } catch {}
+        }
+
+        // 2) Cache local solo si está fresco (TTL ~30min)
+        const { savedAt, items } = readCache();
+        const isFresh = savedAt && (Date.now() - savedAt) < (30 * 60 * 1000);
+        if (isFresh && items.length) return items;
+
+        // 3) Fallback local (misma origin)
+        try {
+          const r = await fetch('inventario.json', { headers: { accept: 'application/json' } });
+          if (r.ok) {
+            const j = await r.json();
+            if (Array.isArray(j)) return j;
+          }
+        } catch {}
+        return [];
+      }
+  
+      const rawItems = await fetchAllItems();
+      const items = rawItems.map(typeof normalizeItem === 'function' ? normalizeItem : (x) => x);
+  
+      const slugifyLocal = typeof slugify === 'function'
+        ? slugify
+        : (str) => String(str || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '')
+            .trim();
+  
+      const buildKey = (it) => [it.name, it.category, it.measure].map(slugifyLocal).join(':');
+  
+      // Resolver el ítem buscado
+      let found = null;
+      if (id) {
+        found = items.find(it => String(it.id) === String(id)) || null;
+      }
+      if (!found && key) {
+        const k = String(key || '').trim();
+        found = items.find(it => buildKey(it) === k) || null;
+      }
+      if (!found && nameQ && measureQ) {
+        const mQ = String(measureQ || '').trim().toLowerCase();
+        found = items.find(it =>
+          String(it.name || '').trim() === String(nameQ || '').trim() &&
+          String(it.measure || '').trim().toLowerCase() === mQ
+        ) || null;
+      }
+  
+      if (!found) {
+        detailEl.innerHTML = `
+          <article class="product-card">
+            <h3>No se encontró el producto</h3>
+            <p>Vuelve al listado y selecciona otra tarjeta.</p>
+          </article>
+        `;
+        return;
+      }
+  
+      const formatOrPlain = (n) => {
+        if (n == null) return '';
+        if (typeof formatPrice === 'function') return formatPrice(n);
+        return String(n);
+      };
+      const priceHtml = found.price != null ? `<div class="price">${formatOrPlain(found.price)}</div>` : '';
+      const measureLabel = (typeof toDisplayMeasure === 'function') ? toDisplayMeasure(found.measure) : found.measure;
+      const descText = String(found.description || '');
+      const showDesc = !/\b(sin\s+stock|agotado)\b/i.test(descText);
+      const descHtml = showDesc && descText ? `<p class="meta-item description">${esc(descText)}</p>` : '';
+  
+      detailEl.innerHTML = `
+        <section class="product-detail">
+          <div class="product-detail__media">
+            <img src="${esc(found.image)}" alt="${esc(found.name)}" />
+          </div>
+          <div class="product-detail__info">
+            <h2>${esc(found.name)}</h2>
+            ${priceHtml}
+            ${found.measure ? `<p><strong>Tamaño:</strong> ${esc(measureLabel)}</p>` : ''}
+            ${found.category ? `<p><strong>Categoría:</strong> ${esc(found.category)}</p>` : ''}
+            ${descHtml}
+            <button class="btn btn-primary"
+              data-add-to-cart
+              data-name="${esc(found.name)}"
+              data-category="${esc(found.category)}"
+              data-price="${found.price != null ? found.price : 0}"
+              data-image="${esc(found.image)}"
+              data-measure="${esc(found.measure || '')}">
+              Agregar al carrito
+            </button>
+          </div>
+        </section>
+      `;
+    })();
+</script>
+</body>
+</html>

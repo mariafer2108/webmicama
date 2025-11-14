@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Frazada Microfibra Premium",
+    "category": "Frazadas",
+    "price": 15990,
+    "image": "img/frazada.JPG",
+    "measure": "2 Plazas"
+  },
+  {
+    "name": "Almohada Viscoelástica",
+    "category": "Almohadas",
+    "price": 19990,
+    "image": "img/almohadas.JPG",
+    "measure": "Standard"
+  },
+  {
+    "name": "Juego de Sábanas 400 hilos",
+    "category": "Sábanas",
+    "price": 24990,
+    "image": "img/sabana.JPG",
+    "measure": "King"
+  },
+  {
+    "name": "Toalla 700g Reversible",
+    "category": "Toallas",
+    "price": 6990,
+    "image": "img/toallas.JPG",
+    "measure": "70x140"
+  },
+  {
+    "name": "Quilt Ligero Estampado",
+    "category": "Quilt",
+    "price": 32990,
+    "image": "img/quilt.JPG",
+    "measure": "Queen"
+  },
+  {
+    "name": "Cobertor Plumón Premium",
+    "category": "Plumones",
+    "price": 45990,
+    "image": "img/cobertor.JPG",
+    "measure": "Super King"
+  },
+  {
+    "name": "Juego Infantil Estrellas",
+    "category": "Infantil",
+    "price": 22990,
+    "image": "img/infantil.JPG",
+    "measure": "1.5 Plaza"
+  },
+  { "nombre": "Frazada Microfibra", "categoria": "Frazadas", "tamaño": "2 Plazas", "precioventa": 15990 },
+  { "nombre": "Almohada Viscoelástica", "categoria": "Almohadas", "tamaño": "Standard", "precioventa": 19990 }
+]
