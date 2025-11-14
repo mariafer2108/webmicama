@@ -65,6 +65,11 @@ body {
 }
 .nav a:hover { text-decoration: underline; }
 
+/* Botón hamburguesa */
+.hamburger { display: none; cursor: pointer; padding: 8px; margin-left: 0; }
+.hamburger span { display: block; width: 24px; height: 2px; background: var(--white); margin: 5px 0; border-radius: 2px; }
+.nav-toggle { display: none; }
+
 /* Hero */
 .hero { position: relative; }
 .hero-bg {
@@ -299,7 +304,11 @@ body {
     .product-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 720px) {
-    .nav { display: none; } /* simplificación móvil */
+    .nav-wrap { justify-content: space-between; position: relative; }
+    .hamburger { display: block; }
+    .nav { display: none; position: absolute; left: 0; right: 0; top: 56px; background: var(--blue-500); padding: 10px 20px; box-shadow: var(--shadow); }
+    .nav a { display: block; margin: 10px 0; }
+    .nav-toggle:checked ~ .nav { display: block; }
     .hero-bg { height: 340px; }
     .hero-card {
         left: 50%;

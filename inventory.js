@@ -526,9 +526,7 @@ async function renderCategoryProducts() {
 
   try {
     // Traer inventario (Supabase → endpoints → inventario.json)
-    const res = hasMeasure || slugCat === 'infantil' || slugCat === 'protectores'
-      ? await withTimeout(fetchInventory(null), 12000)
-      : await withTimeout(fetchInventory(categoryName), 12000);
+    const res = await withTimeout(fetchInventory(null), 12000);
 
     const items = Array.isArray(res) ? res.map(normalizeItem) : [];
 
@@ -542,17 +540,9 @@ async function renderCategoryProducts() {
       let okCat;
       if (!allowed.includes(slugCat) || !slugCat) {
         okCat = true;
-      } else if (slugCat === 'infantil') {
-        okCat = matchesInfantil(it);
       } else {
         const detected = detectCategorySlug(it);
-        const cat = slugify(it.category);
-        okCat =
-          !slugCat ||
-          detected === slugCat ||
-          cat.includes(slugCat) ||
-          slugify(it.name).includes(slugCat) ||
-          (Array.isArray(it.tags) && it.tags.some(t => slugify(t).includes(slugCat)));
+        okCat = detected === slugCat;
       }
       if (!okCat) return false;
 
@@ -563,16 +553,12 @@ async function renderCategoryProducts() {
       return true;
     }) : [];
 
-    // Sin resultados → fallback visual o listar todo
+    // Sin resultados → ocultar todo el contenido principal
     if (!filtered.length) {
-      if (!hasMeasure && Array.isArray(items) && items.length) {
-        console.log('ℹ️ Filtro vacío, mostrando todos los productos como fallback');
-        grid.innerHTML = items.map(renderCard).join('');
-        grid.style.display = '';
-        return;
-      }
-      grid.innerHTML = originalGridHTML || '';
-      grid.style.display = originalGridHTML ? '' : 'none';
+      try {
+        const mainEl = document.querySelector('main');
+        if (mainEl) mainEl.style.display = 'none';
+      } catch {}
       return;
     }
 
