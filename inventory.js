@@ -622,6 +622,73 @@ if (document.readyState === 'loading') {
   renderCategoryProducts();
 }
 
+// Home: renderizar productos destacados reales en index.html
+async function renderFeaturedProductsOnHome() {
+  try {
+    const path = (location.pathname || '').toLowerCase();
+    const file = (path.split('/').pop() || '').trim();
+    if (file && file !== 'index.html') return;
+
+    const grid = document.querySelector('.featured .product-grid');
+    if (!grid) return;
+
+    let cfg = {};
+    try {
+      const cfgEl = document.getElementById('featured-config');
+      if (cfgEl) cfg = JSON.parse(cfgEl.textContent || '{}');
+    } catch {}
+
+    grid.innerHTML = `
+      <article class="product-card">
+        <h3>Cargando productos...</h3>
+      </article>
+    `;
+
+    const res = await withTimeout(fetchInventory(null), 12000);
+    const items = Array.isArray(res) ? res.map(normalizeItem) : [];
+
+    // Selección explícita por config: ids / names / keys
+    const cfgIds = new Set((cfg.ids || []).map((v) => String(v)));
+    const cfgNames = new Set((cfg.names || []).map((v) => slugify(v)));
+    const cfgKeys = new Set((cfg.keys || []).map((v) => slugify(v)));
+    let featured = [];
+    if (cfgIds.size || cfgNames.size || cfgKeys.size) {
+      featured = items.filter((it) => {
+        const byId = it.id != null && cfgIds.has(String(it.id));
+        const byName = cfgNames.has(slugify(it.name));
+        const byKey = cfgKeys.has(slugify(computeItemKey(it)));
+        return byId || byName || byKey;
+      });
+    }
+
+    // Si no hay selección en config, preferir tags 'destacado'/'featured'
+    if (!featured.length) {
+      featured = items.filter((it) => {
+        const tags = Array.isArray(it.tags) ? it.tags.map(slugify) : [];
+        return tags.some((t) => t.includes('destacado') || t.includes('featured'));
+      });
+    }
+
+    // Fallback: tomar los más recientes de categorías conocidas
+    if (!featured.length) {
+      const allowed = ['almohadas','sabanas','toallas','quilt','plumones','infantil','frazadas','protectores'];
+      featured = items.filter((it) => allowed.includes(slugify(it.category)));
+    }
+
+    const limit = Number(cfg.limit) || 3;
+    const top = featured.slice(0, limit);
+    grid.innerHTML = top.map(renderCard).join('');
+  } catch (e) {
+    console.log('💥 Error al renderizar destacados:', e && e.message ? e.message : e);
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderFeaturedProductsOnHome);
+} else {
+  renderFeaturedProductsOnHome();
+}
+
 // Coincidencia estricta por medida
 function matchesMeasure(item, measureName) {
   const want = normalizeMeasureAlias(measureName);
