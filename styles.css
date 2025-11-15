@@ -20,7 +20,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1400px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -172,21 +172,27 @@ body {
     letter-spacing: .4px;
     box-shadow: var(--shadow);
 }
+.featured .product-grid {
+    gap: 0;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 14px;
 }
 .product-card {
+    display: block;
+    width: 100%;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 12px;
+    padding: 10px;
     background: #fff;
     box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 .product-card img {
     width: 100%;
-    height: 160px;
+    height: 200px;
     object-fit: cover;
     border-radius: 8px;
 }
@@ -561,23 +567,27 @@ body {
 .container.is-fullwidth {
   max-width: none;
   width: 100%;
-  padding: 0 22px; /* separación lateral */
+  padding: 0; /* sin separación lateral */
 }
 
 /* Grid horizontal de 5 columnas por categoría en páginas de medidas */
 .category-columns {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 18px;
-  align-items: start;
-  width: 100%;
-  margin-top: 12px; /* separación superior respecto al banner */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 18px;
+    align-items: start;
+    width: 100%;
+    margin-top: 12px; /* separación superior respecto al banner */
+    justify-content: start;
+    justify-items: stretch;
 }
 
 /* Columna individual con título + lista */
 .category-column {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
+  width: 100%;
 }
 
 .category-subtitle {
@@ -590,22 +600,17 @@ body {
 
 /* Dentro de cada columna, las tarjetas van apiladas verticalmente */
 .product-grid--column {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    justify-items: stretch;
 }
 
 /* Responsivo: reducir número de columnas en pantallas más estrechas */
 @media (max-width: 1200px) {
-  .category-columns { grid-template-columns: repeat(4, 1fr); }
+  .category-columns { grid-template-columns: repeat(2, minmax(360px, 1fr)); }
 }
 @media (max-width: 980px) {
-  .category-columns { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 720px) {
-  .category-columns { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 520px) {
   .category-columns { grid-template-columns: 1fr; }
 }
 
@@ -808,7 +813,17 @@ body {
 }
 
 main.container.is-fullwidth {
-  max-width: 1200px;
+  max-width: none;
+  width: 100%;
+  margin: 0;
+  padding: 0; /* sin separación lateral */
+}
+
+/* Pegado al borde izquierdo en páginas fullwidth */
+main.container.is-fullwidth .product-grid,
+main.container.is-fullwidth .category-columns {
+  margin-left: 0;
+  padding-left: 0;
 }
 /* Layout base para footer pegado al fondo */
 html, body {
@@ -1192,12 +1207,15 @@ main.container.is-fullwidth {
 
 /* Medidas: categorías clicables con despliegue */
 .category-columns {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 18px;
-  align-items: start;
-  width: 100%;
-  margin-top: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 18px;
+    align-items: start;
+    width: 100%;
+    margin-top: 12px;
+    justify-content: start;
+    align-content: start;
+    justify-items: stretch;
 }
 
 .category-column .category-products {
@@ -1249,9 +1267,19 @@ main.container.is-fullwidth {
 }
 
 .product-grid--column {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 420px));
+    gap: 16px;
+    justify-content: start;
+    align-content: start;
+    width: 100%;
+    margin-left: 0;
+    padding-left: 0;
+}
+/* Asegurar que las tarjetas se peguen al inicio de su columna */
+.product-grid .product-card,
+.product-grid--column .product-card {
+  justify-self: start;
 }
 
 @media (max-width: 980px) {
@@ -1302,3 +1330,22 @@ main.container.is-fullwidth {
 @media (max-width: 720px) {
     .floating-cart { display: inline-flex; }
 }
+
+/* Margen adicional sólo en la página Productos */
+main.page-products {
+  padding-left: 80px;
+  padding-right: 56px;
+}
+main.page-products .categories-grid,
+main.page-products .measure-list,
+main.page-products .product-grid {
+  padding-left: 56px;
+}
+@media (max-width: 980px) {
+  main.page-products { padding-left: 20px; padding-right: 20px; }
+  main.page-products .categories-grid,
+  main.page-products .measure-list,
+  main.page-products .product-grid { padding-left: 16px; }
+}
+main.page-products .page-title { text-align: center; }
+main.page-products .measures .page-title { text-align: center; }
