@@ -506,6 +506,17 @@ async function renderCategoryProducts() {
   const measureName = resolveMeasure();
   const hasMeasure = !!slugify(measureName) || !!normalizeMeasureAlias(measureName);
 
+  try {
+    const mainEl = document.querySelector('main');
+    if (mainEl) {
+      if (hasMeasure) {
+        mainEl.classList.add('is-fullwidth');
+      } else {
+        mainEl.classList.remove('is-fullwidth');
+      }
+    }
+  } catch {}
+
   const slugCat = slugify(categoryName);
   const allowed = ['almohadas','sabanas','toallas','quilt','plumones','infantil','frazadas','protectores'];
   if (!slugCat || !allowed.includes(slugCat)) {
@@ -542,7 +553,8 @@ async function renderCategoryProducts() {
         okCat = true;
       } else {
         const detected = detectCategorySlug(it);
-        okCat = detected === slugCat;
+        const catEq = slugify(it.category) === slugCat;
+        okCat = detected === slugCat || catEq;
       }
       if (!okCat) return false;
 
@@ -553,17 +565,44 @@ async function renderCategoryProducts() {
       return true;
     }) : [];
 
-    // Sin resultados → ocultar todo el contenido principal
+    // Sin resultados → mantener contenido original estático
     if (!filtered.length) {
-      try {
-        const mainEl = document.querySelector('main');
-        if (mainEl) mainEl.style.display = 'none';
-      } catch {}
+      grid.innerHTML = originalGridHTML || '';
+      grid.style.display = originalGridHTML ? '' : 'none';
       return;
     }
 
-    // Render normal
-    grid.innerHTML = filtered.map(renderCard).join('');
+    if (!hasMeasure && allowed.includes(slugCat)) {
+      grid.innerHTML = filtered.map(renderCard).join('');
+    } else if (hasMeasure) {
+      const titleMap = {
+        almohadas: 'Almohadas',
+        sabanas: 'Sábanas',
+        toallas: 'Toallas',
+        quilt: 'Quilt',
+        plumones: 'Plumones',
+        infantil: 'Infantil',
+        frazadas: 'Frazadas',
+        protectores: 'Protectores',
+      };
+      const groups = new Map();
+      for (const it of filtered) {
+        const slug = detectCategorySlug(it) || slugify(it.category) || 'otros';
+        const key = slugify(slug);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(it);
+      }
+      const entries = Array.from(groups.entries()).sort((a,b) => b[1].length - a[1].length);
+      const columns = [];
+      for (const [k, list] of entries) {
+        const title = titleMap[k] || (k.charAt(0).toUpperCase() + k.slice(1));
+        const cards = list.map(renderCard).join('');
+        columns.push(`<div class="category-column"><div class="product-grid--column">${cards}</div></div>`);
+      }
+      grid.innerHTML = `<section class="category-columns">${columns.join('')}</section>`;
+    } else {
+      grid.innerHTML = filtered.map(renderCard).join('');
+    }
   } catch (err) {
     console.log('💥 Error al renderizar:', err);
     grid.innerHTML = `
@@ -628,4 +667,46 @@ function detectCategorySlug(item) {
 // Clave única para detalles
 function computeItemKey(item) {
   return [item.name, item.category, item.measure].map(slugify).join(':');
+}
+
+function resolveSearchTarget(text) {
+  const s = String(text || '').trim();
+  if (!s) return null;
+  const m = normalizeMeasureAlias(s);
+  if (m) {
+    if (m === 'm-1') return 'medida-1-plaza.html';
+    if (m === 'm-15') return 'medida-1-5-plaza.html';
+    if (m === 'm-2') return 'medida-2-plazas.html';
+    if (m === 'm-king') return 'medida-king.html';
+    if (m === 'm-superking') return 'medida-super-king.html';
+  }
+  const raw = s.toLowerCase();
+  if (/\b1\.5\b/.test(raw) || /\b1\s*(?:1\/2|½)\b/.test(raw)) return 'medida-1-5-plaza.html';
+  if (/\bking\b/.test(raw)) return 'medida-king.html';
+  if (/super\s*king/.test(raw)) return 'medida-super-king.html';
+  const fake = { name: s, category: s, tags: [s] };
+  const cat = detectCategorySlug(fake);
+  const allowed = ['almohadas','sabanas','toallas','quilt','plumones','infantil','frazadas','protectores'];
+  if (allowed.includes(cat)) return `${cat}.html`;
+  return null;
+}
+
+function setupProductosSearch() {
+  const bar = document.querySelector('.searchbar');
+  if (!bar) return;
+  const input = bar.querySelector('input');
+  const btn = bar.querySelector('.search-btn');
+  const go = (e) => {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    const target = resolveSearchTarget(input && input.value);
+    if (target) location.href = target;
+  };
+  if (btn) btn.addEventListener('click', go);
+  if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(e); });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', setupProductosSearch);
+} else {
+  setupProductosSearch();
 }

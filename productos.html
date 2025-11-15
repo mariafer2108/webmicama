@@ -23,15 +23,15 @@
         </nav></div></div>
     </header>
 
-    <main class="container">
+    <main class="container page-products">
         <section class="products-head">
             <h1 class="page-title">Categorías</h1>
-            <div class="searchbar">
+            <form class="searchbar" action="#" method="get">
                 <input type="text" placeholder="Buscar productos..." aria-label="Buscar productos" />
-                <button class="search-btn" aria-label="Buscar">
+                <button class="search-btn" type="submit" aria-label="Buscar">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </button>
-            </div>
+            </form>
         </section>
 
         <!-- Dentro de la sección de categorías -->
@@ -129,10 +129,106 @@
             </div>
         </div>
     </footer>
-</body>
-</html>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="cart.js"></script>
 <script src="inventory.js"></script>
+<script>
+(function(){
+  var bar = document.querySelector('.searchbar');
+  if (!bar) return;
+  var input = bar.querySelector('input');
+  var btn = bar.querySelector('.search-btn');
+  function slugify(s){
+    var str = String(s||'').toLowerCase();
+    try { str = str.normalize('NFD').replace(/[\u0300-\u036f]/g,''); } catch(e) {}
+    return str.replace(/[^a-z0-9]+/g,'').trim();
+  }
+  function measureAlias(s){
+    var raw = String(s||'').toLowerCase();
+    var hasPlaza = /plaz(a|as)?/.test(raw);
+    if (/super\s*king/.test(raw)) return 'm-superking';
+    if (/\bking\b/.test(raw)) return 'm-king';
+    if (hasPlaza && (/plaz(a|as)?\s*y\s*media/.test(raw) || /1\s*(?:1\/2|½)\s*plaz(a|as)?/.test(raw) || /\b1\.5\b/.test(raw))) return 'm-15';
+    if (hasPlaza && /2\s*plaz(a|as)?/.test(raw)) return 'm-2';
+    if (hasPlaza && /1\s*plaz(a|as)?/.test(raw)) return 'm-1';
+    return '';
+  }
+  function resolve(text){
+    var m = measureAlias(text);
+    if (m==='m-1') return 'medida-1-plaza.html';
+    if (m==='m-15') return 'medida-1-5-plaza.html';
+    if (m==='m-2') return 'medida-2-plazas.html';
+    if (m==='m-king') return 'medida-king.html';
+    if (m==='m-superking') return 'medida-super-king.html';
+    var t = slugify(text);
+    var allowed = ['almohadas','sabanas','toallas','quilt','plumones','infantil','frazadas','protectores'];
+    var syn = {
+      protectores:['protector','colchon','colchonera','cubrecolchon','cubrecolch','cubre','cubrematelas','cubrecolchoneta'],
+      sabanas:['sabana','sabanas'],
+      quilt:['quilt','cobertor','acolchado','cubrelecho','cubrecama'],
+      plumones:['plumon','edredon','duvet'],
+      almohadas:['almohada','cojin','cojines'],
+      toallas:['toalla','toallas'],
+      frazadas:['frazada','manta','mantas','polar'],
+      infantil:['infantil','nina','nino','bebe','baby','juvenil','kids']
+    };
+    for (var i=0;i<allowed.length;i++){
+      var slug = allowed[i];
+      if (t.indexOf(slug) >= 0) return slug + '.html';
+      var keys = syn[slug] || [];
+      for (var j=0;j<keys.length;j++){
+        if (t.indexOf(keys[j]) >= 0) return slug + '.html';
+      }
+    }
+    return '';
+  }
+  function go(e){
+    if (e && e.preventDefault) e.preventDefault();
+    var val = input && input.value;
+    var target = resolve(val);
+    if (!target && typeof resolveSearchTarget === 'function') target = resolveSearchTarget(val);
+    if (target) { location.href = target; return; }
+    (async function(){
+      var host = document.querySelector('.products-head') || document.querySelector('main') || document.body;
+      var grid = document.getElementById('search-results');
+      if (!grid) {
+        grid = document.createElement('section');
+        grid.id = 'search-results';
+        grid.className = 'product-grid';
+        host.parentNode.insertBefore(grid, host.nextSibling);
+      }
+      grid.innerHTML = '<article class="product-card"><h3>Buscando...</h3></article>';
+      try {
+        var raw = (typeof fetchInventory === 'function') ? await fetchInventory(null) : [];
+        var items = Array.isArray(raw) ? raw.map(function(x){ return (typeof normalizeItem === 'function') ? normalizeItem(x) : x; }) : [];
+        var q = slugify(val);
+        var results = items.filter(function(it){
+          var cat = slugify(it && (it.categoria || it.category));
+          var name = slugify(it && (it.nombre || it.name));
+          var tags = Array.isArray(it && it.tags) ? it.tags.map(slugify).join('') : '';
+          return cat.indexOf(q) >= 0 || name.indexOf(q) >= 0 || tags.indexOf(q) >= 0;
+        });
+        if (!results.length) {
+          grid.innerHTML = '<article class="product-card"><h3>No hay resultados</h3><p>Intenta con otra palabra clave.</p></article>';
+          return;
+        }
+        if (typeof renderCard === 'function') {
+          grid.innerHTML = results.map(renderCard).join('');
+        } else {
+          grid.innerHTML = results.map(function(it){
+            var esc = function(s){ return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+            return '<article class="product-card"><h3>'+esc(it.name||it.nombre)+'</h3></article>';
+          }).join('');
+        }
+      } catch(err) {
+        grid.innerHTML = '<article class="product-card"><h3>Error en búsqueda</h3><p>'+String(err&&err.message||err)+'</p></article>';
+      }
+    })();
+  }
+  if (btn) btn.addEventListener('click', go);
+  if (bar) bar.addEventListener('submit', go);
+  if (input) input.addEventListener('keydown', function(e){ if (e.key==='Enter') go(e); });
+})();
+</script>
 </body>
 </html>
